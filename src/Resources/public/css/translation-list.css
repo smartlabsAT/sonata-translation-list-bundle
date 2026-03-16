@@ -17,6 +17,16 @@
     white-space: nowrap;
 }
 
+.translation-field-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.translation-field-toggle {
+    cursor: pointer;
+}
+
 /* Column headers */
 .translation-list-columns-row th {
     background: #f4f4f4;
@@ -24,14 +34,30 @@
     padding: 10px 12px;
     border-bottom: 2px solid #ddd;
     font-size: 13px;
+    white-space: nowrap;
 }
 
 .translation-col-identifier {
-    min-width: 200px;
+    min-width: 180px;
+    width: 180px;
 }
 
 .translation-col-locale {
-    min-width: 250px;
+    min-width: 200px;
+}
+
+/* Two-line column header: field label + locale */
+.translation-col-field-label {
+    display: block;
+    font-size: 11px;
+    color: #999;
+    font-weight: 400;
+    line-height: 1.2;
+}
+
+.translation-col-locale-label {
+    font-weight: 700;
+    font-size: 13px;
 }
 
 /* Data rows */
@@ -48,6 +74,8 @@
     padding: 8px 12px;
     vertical-align: top;
     font-weight: 500;
+    width: 180px;
+    min-width: 180px;
 }
 
 .translation-cell-identifier a {

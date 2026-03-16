@@ -1,9 +1,9 @@
 /**
- * SonataTranslationListBundle — auto-save translation textareas on blur.
+ * SonataTranslationListBundle
  *
- * Textareas with class "translation-editable" are watched for changes.
- * When a textarea loses focus and its value differs from the original,
- * the new value is POSTed to the save endpoint via AJAX.
+ * - Multi-field toggle (show/hide columns without page reload)
+ * - Auto-save translation textareas on blur
+ * - Hides original table header and language switcher in translation mode
  */
 (function () {
     'use strict';
@@ -19,14 +19,96 @@
         var saveUrl = saveUrlEl.getAttribute('data-url');
         var csrfToken = csrfTokenEl.getAttribute('data-token');
 
+        // --- Hide original table header and language switcher ---
+        hideOriginalElements();
+
+        // --- Field toggle buttons ---
+        initFieldToggles();
+
+        // --- Textarea save behavior ---
+        initTextareas(saveUrl, csrfToken);
+    }
+
+    /**
+     * Hide the original Sonata list thead and the locale_switcher.
+     */
+    function hideOriginalElements() {
+        var thead = document.querySelector('table.sonata-ba-list thead');
+        if (thead) {
+            thead.style.display = 'none';
+        }
+
+        document.querySelectorAll('.locale_switcher').forEach(function (el) {
+            el.style.display = 'none';
+        });
+    }
+
+    /**
+     * Field toggle buttons: click to show/hide columns for that field.
+     * At least one field must remain active.
+     */
+    function initFieldToggles() {
+        var buttons = document.querySelectorAll('.translation-field-toggle');
+
+        buttons.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var field = this.getAttribute('data-field');
+                var isActive = this.classList.contains('btn-primary');
+                var activeCount = document.querySelectorAll('.translation-field-toggle.btn-primary').length;
+
+                // Prevent deactivating the last field
+                if (isActive && activeCount <= 1) {
+                    return;
+                }
+
+                // Toggle button state
+                this.classList.toggle('btn-primary');
+                this.classList.toggle('btn-default');
+                var nowActive = !isActive;
+
+                // Show/hide all cells for this field
+                document.querySelectorAll('[data-translation-field="' + field + '"]').forEach(function (el) {
+                    el.style.display = nowActive ? '' : 'none';
+                });
+
+                // Auto-resize newly visible textareas
+                if (nowActive) {
+                    document.querySelectorAll('[data-translation-field="' + field + '"] textarea').forEach(function (ta) {
+                        autoResize(ta);
+                    });
+                }
+
+                // Update URL without reload (for bookmarkability)
+                updateUrlFields();
+            });
+        });
+    }
+
+    /**
+     * Update the URL query param `translation_fields` to reflect active fields.
+     */
+    function updateUrlFields() {
+        var active = [];
+        document.querySelectorAll('.translation-field-toggle.btn-primary').forEach(function (btn) {
+            active.push(btn.getAttribute('data-field'));
+        });
+
+        var url = new URL(window.location.href);
+        url.searchParams.set('translation_fields', active.join(','));
+        url.searchParams.delete('translation_field'); // remove old single-field param
+        window.history.replaceState(null, '', url.toString());
+    }
+
+    /**
+     * Initialize textarea auto-resize, save-on-blur, and keyboard shortcuts.
+     */
+    function initTextareas(saveUrl, csrfToken) {
         document.querySelectorAll('textarea.translation-editable').forEach(function (textarea) {
-            // Auto-resize on input
             textarea.addEventListener('input', function () {
                 autoResize(this);
                 updateModifiedState(this);
             });
 
-            // Save on blur
             textarea.addEventListener('blur', function () {
                 var originalValue = this.getAttribute('data-original-value') || '';
                 if (this.value !== originalValue) {
@@ -34,7 +116,6 @@
                 }
             });
 
-            // Ctrl+Enter / Cmd+Enter to save without leaving
             textarea.addEventListener('keydown', function (e) {
                 if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                     e.preventDefault();
@@ -42,11 +123,9 @@
                 }
             });
 
-            // Initial auto-resize
             autoResize(textarea);
         });
 
-        // Also auto-resize readonly textareas
         document.querySelectorAll('textarea.translation-readonly').forEach(function (textarea) {
             autoResize(textarea);
         });
@@ -115,7 +194,6 @@
         });
     }
 
-    // Initialize when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {

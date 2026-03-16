@@ -4,8 +4,8 @@
     Renders inside the <tbody> of Sonata Admin's base_list.html.twig.
     Works with any entity implementing TranslatableInterface (KnpDoctrineBehaviors).
 
-    The translation_list_config() Twig function (provided by TranslationListRuntime)
-    discovers translatable fields from Doctrine metadata and returns configured locales.
+    All translatable fields are rendered but hidden by default.
+    The JS toggles field visibility client-side (no page reload).
 #}
 
 {% set config = translation_list_config(admin) %}
@@ -20,48 +20,52 @@
         </td>
     </tr>
 {% else %}
-    {# Determine active field from query parameter, fall back to first field #}
-    {% set active_field = app.request.query.get('translation_field', translatable_fields|keys|first) %}
-    {% if active_field not in translatable_fields|keys %}
-        {% set active_field = translatable_fields|keys|first %}
-    {% endif %}
+    {# Determine initially active fields from query parameter (comma-separated) #}
+    {% set active_fields_param = app.request.query.get('translation_fields', translatable_fields|keys|first) %}
+    {% set active_fields = active_fields_param|split(',') %}
 
     {# CSRF token for AJAX save requests #}
     {% set csrf_token = csrf_token('translation_list_save') %}
 
-    {# Field selector row #}
+    {# Field selector row — buttons are toggles, JS handles show/hide #}
     <tr class="translation-list-header-row">
         <td colspan="100%">
             <div class="translation-field-selector">
-                <span class="translation-field-label">Field:</span>
-                <div class="btn-group btn-group-sm">
+                <span class="translation-field-label">Fields:</span>
+                <div class="translation-field-buttons">
                     {% for fieldName, fieldLabel in translatable_fields %}
-                        <a href="{{ admin.generateUrl('list', admin.persistentParameters|merge({'translation_field': fieldName})) }}"
-                           class="btn {{ fieldName == active_field ? 'btn-primary' : 'btn-default' }}">
+                        <button type="button"
+                                class="btn btn-sm translation-field-toggle {{ fieldName in active_fields ? 'btn-primary' : 'btn-default' }}"
+                                data-field="{{ fieldName }}">
                             {{ fieldLabel }}
-                        </a>
+                        </button>
                     {% endfor %}
                 </div>
             </div>
         </td>
     </tr>
 
-    {# Column headers #}
+    {# Column headers — one group (DE/EN) per field #}
     <tr class="translation-list-columns-row">
-        <th class="translation-col-identifier" style="width: 250px;">
+        <th class="translation-col-identifier">
             {{ 'Name'|trans({}, admin.translationDomain) }}
         </th>
-        {% for locale in locales %}
-            <th class="translation-col-locale">
-                {{ locale|upper }}
-                {% if locale == default_locale %}
-                    <i class="fas fa-lock fa-xs text-muted" title="Default locale (read-only)"></i>
-                {% endif %}
-            </th>
+        {% for fieldName, fieldLabel in translatable_fields %}
+            {% for locale in locales %}
+                <th class="translation-col-locale translation-col-field"
+                    data-translation-field="{{ fieldName }}"
+                    {% if fieldName not in active_fields %}style="display:none;"{% endif %}>
+                    <span class="translation-col-field-label">{{ fieldLabel }}</span>
+                    <span class="translation-col-locale-label">{{ locale|upper }}</span>
+                    {% if locale == default_locale %}
+                        <i class="fas fa-lock fa-xs text-muted" title="Default locale (read-only)"></i>
+                    {% endif %}
+                </th>
+            {% endfor %}
         {% endfor %}
     </tr>
 
-    {# Data rows — one row per entity #}
+    {# Data rows — one row per entity, all fields rendered #}
     {% for object in admin.datagrid.results %}
         <tr class="translation-list-data-row">
             {# Identifier column with link to edit form #}
@@ -71,36 +75,41 @@
                 </a>
             </td>
 
-            {# One textarea per locale #}
-            {% for locale in locales %}
-                {% set is_default = (locale == default_locale) %}
-                {% set translation = object.translate(locale, false) %}
-                {% set getter = 'get' ~ (active_field|slice(0, 1)|upper ~ active_field|slice(1)) %}
-                {% set field_value = attribute(translation, getter) ?? '' %}
+            {# All fields × all locales #}
+            {% for fieldName, fieldLabel in translatable_fields %}
+                {% for locale in locales %}
+                    {% set is_default = (locale == default_locale) %}
+                    {% set translation = object.translate(locale, false) %}
+                    {% set getter = 'get' ~ (fieldName|slice(0, 1)|upper ~ fieldName|slice(1)) %}
+                    {% set field_value = attribute(translation, getter) ?? '' %}
 
-                <td class="translation-cell {{ is_default ? 'translation-cell-readonly' : 'translation-cell-editable' }}">
-                    <textarea
-                        {{ is_default ? 'readonly' : '' }}
-                        class="translation-textarea {{ is_default ? 'translation-readonly' : 'translation-editable' }}"
-                        {% if not is_default %}
-                            data-object-id="{{ admin.id(object) }}"
-                            data-admin-code="{{ admin.code }}"
-                            data-locale="{{ locale }}"
-                            data-field="{{ active_field }}"
-                            data-original-value="{{ field_value }}"
-                        {% endif %}
-                        rows="3"
-                    >{{ field_value }}</textarea>
-                </td>
+                    <td class="translation-cell translation-col-field {{ is_default ? 'translation-cell-readonly' : 'translation-cell-editable' }}"
+                        data-translation-field="{{ fieldName }}"
+                        {% if fieldName not in active_fields %}style="display:none;"{% endif %}>
+                        <textarea
+                            {{ is_default ? 'readonly' : '' }}
+                            class="translation-textarea {{ is_default ? 'translation-readonly' : 'translation-editable' }}"
+                            {% if not is_default %}
+                                data-object-id="{{ admin.id(object) }}"
+                                data-admin-code="{{ admin.code }}"
+                                data-locale="{{ locale }}"
+                                data-field="{{ fieldName }}"
+                                data-original-value="{{ field_value }}"
+                            {% endif %}
+                            rows="3"
+                        >{{ field_value }}</textarea>
+                    </td>
+                {% endfor %}
             {% endfor %}
         </tr>
     {% endfor %}
 
-    {# Hidden configuration for JavaScript (save URL and CSRF token) #}
+    {# Hidden configuration for JavaScript #}
     <tr style="display:none;">
         <td>
             <span id="translation-list-save-url" data-url="{{ path('sonata_translation_list_save') }}"></span>
             <span id="translation-list-csrf-token" data-token="{{ csrf_token }}"></span>
+            <span id="translation-list-active-fields" data-fields="{{ active_fields|join(',') }}"></span>
         </td>
     </tr>
 {% endif %}

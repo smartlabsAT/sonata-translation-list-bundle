@@ -43,8 +43,14 @@ class TranslationListAdminExtension extends AbstractAdminExtension
 
     public function configurePersistentParameters(AdminInterface $admin, array $parameters): array
     {
-        if ($admin->hasRequest() && $admin->getRequest()->query->has('translation_field')) {
-            $parameters['translation_field'] = $admin->getRequest()->query->get('translation_field');
+        if ($admin->hasRequest()) {
+            $request = $admin->getRequest();
+            if ($request->query->has('translation_fields')) {
+                $parameters['translation_fields'] = $request->query->get('translation_fields');
+            } elseif ($request->query->has('translation_field')) {
+                // backwards compatibility with single-field param
+                $parameters['translation_fields'] = $request->query->get('translation_field');
+            }
         }
 
         return $parameters;
