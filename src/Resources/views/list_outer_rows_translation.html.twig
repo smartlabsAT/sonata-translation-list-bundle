@@ -58,7 +58,7 @@
                     <span class="translation-col-field-label">{{ fieldLabel }}</span>
                     <span class="translation-col-locale-label">{{ locale|upper }}</span>
                     {% if locale == default_locale %}
-                        <i class="fas fa-lock fa-xs text-muted" title="Default locale (read-only)"></i>
+                        <i class="fas fa-home fa-xs text-muted" title="Default locale"></i>
                     {% endif %}
                 </th>
             {% endfor %}
@@ -83,19 +83,16 @@
                     {% set getter = 'get' ~ (fieldName|slice(0, 1)|upper ~ fieldName|slice(1)) %}
                     {% set field_value = attribute(translation, getter) ?? '' %}
 
-                    <td class="translation-cell translation-col-field {{ is_default ? 'translation-cell-readonly' : 'translation-cell-editable' }}"
+                    <td class="translation-cell translation-col-field translation-cell-editable"
                         data-translation-field="{{ fieldName }}"
                         {% if fieldName not in active_fields %}style="display:none;"{% endif %}>
                         <textarea
-                            {{ is_default ? 'readonly' : '' }}
-                            class="translation-textarea {{ is_default ? 'translation-readonly' : 'translation-editable' }}"
-                            {% if not is_default %}
-                                data-object-id="{{ admin.id(object) }}"
-                                data-admin-code="{{ admin.code }}"
-                                data-locale="{{ locale }}"
-                                data-field="{{ fieldName }}"
-                                data-original-value="{{ field_value }}"
-                            {% endif %}
+                            class="translation-textarea translation-editable {{ is_default ? 'translation-locale-default' : '' }}"
+                            data-object-id="{{ admin.id(object) }}"
+                            data-admin-code="{{ admin.code }}"
+                            data-locale="{{ locale }}"
+                            data-field="{{ fieldName }}"
+                            data-original-value="{{ field_value }}"
                             rows="3"
                         >{{ field_value }}</textarea>
                     </td>

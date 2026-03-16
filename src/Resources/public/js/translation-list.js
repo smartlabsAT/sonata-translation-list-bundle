@@ -126,9 +126,7 @@
             autoResize(textarea);
         });
 
-        document.querySelectorAll('textarea.translation-readonly').forEach(function (textarea) {
-            autoResize(textarea);
-        });
+        // no-op: all textareas are editable, already handled above
     }
 
     function autoResize(textarea) {
