@@ -1,0 +1,42 @@
+{
+    "name": "smartlabs/sonata-translation-list-bundle",
+    "type": "symfony-bundle",
+    "description": "Translation list mode for Sonata Admin — side-by-side multilingual editing of translatable entities (KnpDoctrineBehaviors)",
+    "keywords": ["symfony", "sonata", "admin", "translation", "i18n", "knp-doctrine-behaviors"],
+    "homepage": "https://github.com/smartlabsAT/sonata-translation-list-bundle",
+    "version": "1.0.0",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Christopher Schwarz",
+            "email": "christopher@neugebauerschwarz.com",
+            "homepage": "https://smartlabs.at"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "symfony/framework-bundle": "^7.0",
+        "symfony/security-csrf": "^7.0",
+        "sonata-project/admin-bundle": "^4.0",
+        "doctrine/orm": "^3.0",
+        "knplabs/doctrine-behaviors": "^3.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0 || ^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Smartlabs\\SonataTranslationListBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Smartlabs\\SonataTranslationListBundle\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "1.0.x-dev"
+        }
+    }
+}

@@ -1,0 +1,134 @@
+/* SonataTranslationListBundle — Translation list mode styles */
+
+/* Field selector bar */
+.translation-field-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    background: #f8f9fa;
+    border-bottom: 2px solid #3c8dbc;
+}
+
+.translation-field-label {
+    font-weight: 600;
+    color: #666;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+/* Column headers */
+.translation-list-columns-row th {
+    background: #f4f4f4;
+    font-weight: 600;
+    padding: 10px 12px;
+    border-bottom: 2px solid #ddd;
+    font-size: 13px;
+}
+
+.translation-col-identifier {
+    min-width: 200px;
+}
+
+.translation-col-locale {
+    min-width: 250px;
+}
+
+/* Data rows */
+.translation-list-data-row {
+    border-bottom: 1px solid #eee;
+}
+
+.translation-list-data-row:hover {
+    background-color: #f9f9f9;
+}
+
+/* Identifier cell */
+.translation-cell-identifier {
+    padding: 8px 12px;
+    vertical-align: top;
+    font-weight: 500;
+}
+
+.translation-cell-identifier a {
+    color: #3c8dbc;
+    text-decoration: none;
+}
+
+.translation-cell-identifier a:hover {
+    text-decoration: underline;
+}
+
+/* Textarea cells */
+.translation-cell {
+    padding: 6px 8px;
+    vertical-align: top;
+}
+
+/* Shared textarea styles */
+.translation-textarea {
+    width: 100%;
+    min-height: 60px;
+    max-height: 300px;
+    padding: 8px 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    font-family: inherit;
+    border-radius: 3px;
+    resize: vertical;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Readonly (source/default locale) */
+.translation-readonly {
+    background: #f5f5f5;
+    color: #555;
+    border: 1px solid #e0e0e0;
+    cursor: default;
+}
+
+/* Editable (target locale) */
+.translation-editable {
+    background: #fff;
+    color: #333;
+    border: 1px solid #ccc;
+    border-left: 3px solid #3c8dbc;
+}
+
+.translation-editable:focus {
+    outline: none;
+    border-color: #3c8dbc;
+    box-shadow: 0 0 0 2px rgba(60, 141, 188, 0.15);
+}
+
+/* Status states */
+.translation-modified {
+    border-left-color: #f39c12;
+}
+
+.translation-saving {
+    border-left-color: #f39c12;
+    animation: translation-pulse 0.8s ease-in-out infinite;
+}
+
+.translation-saved {
+    border-left-color: #00a65a;
+    box-shadow: 0 0 0 2px rgba(0, 166, 90, 0.15);
+}
+
+.translation-error {
+    border-left-color: #dd4b39;
+    box-shadow: 0 0 0 2px rgba(221, 75, 57, 0.15);
+}
+
+@keyframes translation-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* Header row styling */
+.translation-list-header-row td {
+    padding: 0;
+    border: none;
+}
