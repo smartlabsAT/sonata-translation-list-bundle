@@ -25,6 +25,7 @@
         var csrfToken = csrfTokenEl.getAttribute('data-token');
 
         hideOriginalElements();
+        createStickyHeaders();
         initFieldToggles();
         initInputs(saveUrl, csrfToken);
         preloadCKEditor();
@@ -74,6 +75,113 @@
         document.head.appendChild(script);
     }
 
+    // --- Sticky headers via extracted div ---
+
+    function createStickyHeaders() {
+        var headerRow = document.querySelector('.translation-list-header-row');
+        var colRow = document.querySelector('.translation-list-columns-row');
+        var table = document.querySelector('table.sonata-ba-list');
+        if (!headerRow || !colRow || !table) return;
+
+        // Create wrapper div above the table
+        var stickyDiv = document.createElement('div');
+        stickyDiv.className = 'translation-sticky-header';
+
+        // Move field selector content into sticky div
+        var fieldSelector = headerRow.querySelector('.translation-field-selector');
+        if (fieldSelector) {
+            stickyDiv.appendChild(fieldSelector);
+        }
+
+        // Create a mirror table for column headers
+        var headerTable = document.createElement('table');
+        headerTable.className = 'table translation-sticky-columns';
+        var headerTbody = document.createElement('tbody');
+        headerTable.appendChild(headerTbody);
+        headerTbody.appendChild(colRow);
+        stickyDiv.appendChild(headerTable);
+
+        // Insert before the table
+        table.parentNode.insertBefore(stickyDiv, table);
+
+        // Create a placeholder to keep the original space
+        var placeholder = document.createElement('div');
+        placeholder.className = 'translation-sticky-placeholder';
+        placeholder.style.display = 'none';
+        table.parentNode.insertBefore(placeholder, table);
+
+        // Hide the original header row (now empty)
+        headerRow.style.display = 'none';
+
+        // Calculate top offset: main header + action navbar (both can be fixed)
+        var mainHeader = document.querySelector('.main-header');
+        var actionNavbar = document.querySelector('.navbar-default');
+        var mainHeaderHeight = mainHeader ? mainHeader.offsetHeight : 50;
+        var actionNavbarHeight = actionNavbar ? actionNavbar.offsetHeight : 0;
+        var topOffset = mainHeaderHeight + actionNavbarHeight;
+
+        // Scroll handler: switch between normal and fixed positioning
+        var isStuck = false;
+
+        function onScroll() {
+            var tableTop = table.getBoundingClientRect().top;
+            var stickyHeight = stickyDiv.offsetHeight;
+
+            // Stick when the table top scrolls above the main header
+            if (tableTop < topOffset && !isStuck) {
+                isStuck = true;
+                placeholder.style.display = 'block';
+                placeholder.style.height = stickyHeight + 'px';
+                stickyDiv.classList.add('stuck');
+                stickyDiv.style.position = 'fixed';
+                stickyDiv.style.top = topOffset + 'px';
+                stickyDiv.style.left = table.getBoundingClientRect().left + 'px';
+                stickyDiv.style.width = table.offsetWidth + 'px';
+                syncColumnWidths(headerTable, table);
+            } else if (tableTop >= topOffset && isStuck) {
+                isStuck = false;
+                placeholder.style.display = 'none';
+                stickyDiv.classList.remove('stuck');
+                stickyDiv.style.position = '';
+                stickyDiv.style.top = '';
+                stickyDiv.style.left = '';
+                stickyDiv.style.width = '';
+            }
+
+            // Update left/width while stuck (in case of resize)
+            if (isStuck) {
+                stickyDiv.style.left = table.getBoundingClientRect().left + 'px';
+                stickyDiv.style.width = table.offsetWidth + 'px';
+            }
+        }
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', function () {
+            syncColumnWidths(headerTable, table);
+            if (isStuck) {
+                stickyDiv.style.left = table.getBoundingClientRect().left + 'px';
+                stickyDiv.style.width = table.offsetWidth + 'px';
+            }
+        });
+
+        syncColumnWidths(headerTable, table);
+    }
+
+    function syncColumnWidths(headerTable, dataTable) {
+        var dataRow = dataTable.querySelector('.translation-list-data-row');
+        if (!dataRow) return;
+
+        var dataCells = dataRow.querySelectorAll('td');
+        var headerCells = headerTable.querySelectorAll('td');
+
+        dataCells.forEach(function (cell, i) {
+            if (headerCells[i]) {
+                headerCells[i].style.width = cell.offsetWidth + 'px';
+                headerCells[i].style.minWidth = cell.offsetWidth + 'px';
+            }
+        });
+    }
+
     // --- Hide original Sonata elements ---
 
     function hideOriginalElements() {
@@ -84,6 +192,12 @@
         document.querySelectorAll('.locale_switcher').forEach(function (el) {
             el.style.display = 'none';
         });
+
+        // Remove overflow-x from .table-responsive so position:sticky works on headers
+        var tableResponsive = document.querySelector('.table-responsive');
+        if (tableResponsive) {
+            tableResponsive.style.overflow = 'visible';
+        }
     }
 
     // --- Field toggle buttons ---

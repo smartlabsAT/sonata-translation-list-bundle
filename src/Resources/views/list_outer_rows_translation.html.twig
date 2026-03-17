@@ -48,14 +48,14 @@
         </td>
     </tr>
 
-    {# Column headers — one group per field #}
+    {# Column headers — use <td> instead of <th> so position:sticky works in <tbody> #}
     <tr class="translation-list-columns-row">
-        <th class="translation-col-identifier">
+        <td class="translation-col-identifier translation-col-header">
             {{ 'Name'|trans({}, admin.translationDomain) }}
-        </th>
+        </td>
         {% for fieldName, fieldInfo in translatable_fields %}
             {% for locale in locales %}
-                <th class="translation-col-locale translation-col-field"
+                <td class="translation-col-locale translation-col-field translation-col-header"
                     data-translation-field="{{ fieldName }}"
                     {% if fieldName not in active_fields %}style="display:none;"{% endif %}>
                     <span class="translation-col-field-label">{{ fieldInfo.label }}</span>
@@ -63,7 +63,7 @@
                     {% if locale == default_locale %}
                         <i class="fas fa-home fa-xs text-muted" title="Default locale"></i>
                     {% endif %}
-                </th>
+                </td>
             {% endfor %}
         {% endfor %}
     </tr>
