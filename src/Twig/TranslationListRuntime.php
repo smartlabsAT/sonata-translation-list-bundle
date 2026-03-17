@@ -10,7 +10,7 @@ use Twig\Extension\RuntimeExtensionInterface;
 
 class TranslationListRuntime implements RuntimeExtensionInterface
 {
-    /** @var array<string, array<string, string>> */
+    /** @var array<string, array<string, array{label: string, type: string}>> */
     private array $fieldCache = [];
 
     /**
@@ -26,7 +26,7 @@ class TranslationListRuntime implements RuntimeExtensionInterface
     /**
      * Returns translation list configuration for the given admin.
      *
-     * @return array{fields: array<string, string>, locales: string[], defaultLocale: string}
+     * @return array{fields: array<string, array{label: string, type: string}>, locales: string[], defaultLocale: string}
      */
     public function getConfig(object $admin): array
     {
@@ -42,7 +42,7 @@ class TranslationListRuntime implements RuntimeExtensionInterface
     /**
      * Discovers translatable fields from the Translation entity's Doctrine metadata.
      *
-     * @return array<string, string> Field name => human-readable label
+     * @return array<string, array{label: string, type: string}>
      */
     private function discoverFields(string $modelClass): array
     {
@@ -65,9 +65,14 @@ class TranslationListRuntime implements RuntimeExtensionInterface
                 continue;
             }
 
-            // Convert camelCase to human-readable label
+            $fieldMapping = $metadata->getFieldMapping($fieldName);
+            $type = $fieldMapping->type ?? 'string';
+
             $label = ucfirst(trim(preg_replace('/[A-Z]/', ' $0', $fieldName)));
-            $fields[$fieldName] = $label;
+            $fields[$fieldName] = [
+                'label' => $label,
+                'type' => $type,
+            ];
         }
 
         $this->fieldCache[$modelClass] = $fields;

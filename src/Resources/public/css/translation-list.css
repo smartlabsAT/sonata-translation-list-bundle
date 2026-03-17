@@ -87,65 +87,70 @@
     text-decoration: underline;
 }
 
-/* Textarea cells */
+/* Generic cell — fixed min-height prevents layout jumps on CKEditor init */
 .translation-cell {
     padding: 6px 8px;
     vertical-align: top;
+    min-height: calc(8 * 1.5em + 28px);
 }
 
-/* Shared textarea styles */
-.translation-textarea {
+/* ---- Shared input/textarea styles ---- */
+
+.translation-textarea,
+input.translation-input {
     width: 100%;
-    min-height: 60px;
-    max-height: 300px;
     padding: 8px 10px;
     font-size: 13px;
     line-height: 1.5;
     font-family: inherit;
     border-radius: 3px;
-    resize: vertical;
     box-sizing: border-box;
+    background: #fff;
+    color: #333;
+    border: 1px solid #ccc;
+    border-left: 3px solid #3c8dbc;
     transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.translation-textarea {
+    height: calc(8 * 1.5em + 16px); /* 8 lines × line-height + padding */
+    resize: vertical;
+}
+
+input.translation-input[type="number"] {
+    max-width: 120px;
 }
 
 /* Default locale — editable but visually distinct */
 .translation-locale-default {
     background: #fafafa;
-    border-left: 3px solid #999;
+    border-left-color: #999;
 }
 
-/* Editable (target locale) */
-.translation-editable {
-    background: #fff;
-    color: #333;
-    border: 1px solid #ccc;
-    border-left: 3px solid #3c8dbc;
-}
-
+/* Focus state */
 .translation-editable:focus {
     outline: none;
     border-color: #3c8dbc;
     box-shadow: 0 0 0 2px rgba(60, 141, 188, 0.15);
 }
 
-/* Status states */
-.translation-modified {
-    border-left-color: #f39c12;
+/* ---- Status states (on the <td> container) ---- */
+
+.translation-cell.translation-modified {
+    border-left: 3px solid #f39c12;
 }
 
-.translation-saving {
-    border-left-color: #f39c12;
+.translation-cell.translation-saving {
+    border-left: 3px solid #f39c12;
     animation: translation-pulse 0.8s ease-in-out infinite;
 }
 
-.translation-saved {
-    border-left-color: #00a65a;
-    box-shadow: 0 0 0 2px rgba(0, 166, 90, 0.15);
+.translation-cell.translation-saved {
+    border-left: 3px solid #00a65a;
 }
 
-.translation-error {
-    border-left-color: #dd4b39;
-    box-shadow: 0 0 0 2px rgba(221, 75, 57, 0.15);
+.translation-cell.translation-error {
+    border-left: 3px solid #dd4b39;
 }
 
 @keyframes translation-pulse {
@@ -153,7 +158,68 @@
     50% { opacity: 0.6; }
 }
 
-/* Header row styling */
+/* ---- Boolean toggle switch ---- */
+
+.translation-toggle {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    margin: 4px 0;
+    cursor: pointer;
+}
+
+.translation-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.translation-toggle-slider {
+    position: absolute;
+    inset: 0;
+    background-color: #ccc;
+    border-radius: 24px;
+    transition: background-color 0.3s;
+}
+
+.translation-toggle-slider::before {
+    content: '';
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: #fff;
+    border-radius: 50%;
+    transition: transform 0.3s;
+}
+
+.translation-toggle input:checked + .translation-toggle-slider {
+    background-color: #3c8dbc;
+}
+
+.translation-toggle input:checked + .translation-toggle-slider::before {
+    transform: translateX(20px);
+}
+
+/* ---- CKEditor container ---- */
+
+.translation-cell .cke {
+    border-left: 3px solid #3c8dbc;
+}
+
+.translation-cell .cke .cke_inner {
+    border: none;
+}
+
+.translation-locale-default + .cke,
+.translation-cell .translation-locale-default ~ .cke {
+    border-left-color: #999;
+}
+
+/* ---- Header row ---- */
+
 .translation-list-header-row td {
     padding: 0;
     border: none;

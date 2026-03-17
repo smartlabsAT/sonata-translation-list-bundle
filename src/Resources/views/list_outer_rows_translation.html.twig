@@ -4,8 +4,11 @@
     Renders inside the <tbody> of Sonata Admin's base_list.html.twig.
     Works with any entity implementing TranslatableInterface (KnpDoctrineBehaviors).
 
-    All translatable fields are rendered but hidden by default.
-    The JS toggles field visibility client-side (no page reload).
+    Field types are auto-detected from Doctrine metadata:
+      - string  → <input type="text">
+      - text    → <textarea> with optional CKEditor
+      - boolean → checkbox toggle
+      - integer → <input type="number">
 #}
 
 {% set config = translation_list_config(admin) %}
@@ -33,11 +36,11 @@
             <div class="translation-field-selector">
                 <span class="translation-field-label">Fields:</span>
                 <div class="translation-field-buttons">
-                    {% for fieldName, fieldLabel in translatable_fields %}
+                    {% for fieldName, fieldInfo in translatable_fields %}
                         <button type="button"
                                 class="btn btn-sm translation-field-toggle {{ fieldName in active_fields ? 'btn-primary' : 'btn-default' }}"
                                 data-field="{{ fieldName }}">
-                            {{ fieldLabel }}
+                            {{ fieldInfo.label }}
                         </button>
                     {% endfor %}
                 </div>
@@ -45,17 +48,17 @@
         </td>
     </tr>
 
-    {# Column headers — one group (DE/EN) per field #}
+    {# Column headers — one group per field #}
     <tr class="translation-list-columns-row">
         <th class="translation-col-identifier">
             {{ 'Name'|trans({}, admin.translationDomain) }}
         </th>
-        {% for fieldName, fieldLabel in translatable_fields %}
+        {% for fieldName, fieldInfo in translatable_fields %}
             {% for locale in locales %}
                 <th class="translation-col-locale translation-col-field"
                     data-translation-field="{{ fieldName }}"
                     {% if fieldName not in active_fields %}style="display:none;"{% endif %}>
-                    <span class="translation-col-field-label">{{ fieldLabel }}</span>
+                    <span class="translation-col-field-label">{{ fieldInfo.label }}</span>
                     <span class="translation-col-locale-label">{{ locale|upper }}</span>
                     {% if locale == default_locale %}
                         <i class="fas fa-home fa-xs text-muted" title="Default locale"></i>
@@ -68,7 +71,7 @@
     {# Data rows — one row per entity, all fields rendered #}
     {% for object in admin.datagrid.results %}
         <tr class="translation-list-data-row">
-            {# Identifier column with link to edit form #}
+            {# Identifier column #}
             <td class="translation-cell-identifier">
                 <a href="{{ admin.generateObjectUrl('edit', object) }}">
                     {{ admin.toString(object) }}
@@ -76,25 +79,70 @@
             </td>
 
             {# All fields × all locales #}
-            {% for fieldName, fieldLabel in translatable_fields %}
+            {% for fieldName, fieldInfo in translatable_fields %}
                 {% for locale in locales %}
                     {% set is_default = (locale == default_locale) %}
                     {% set translation = object.translate(locale, false) %}
                     {% set getter = 'get' ~ (fieldName|slice(0, 1)|upper ~ fieldName|slice(1)) %}
                     {% set field_value = attribute(translation, getter) ?? '' %}
+                    {% set field_type = fieldInfo.type %}
 
-                    <td class="translation-cell translation-col-field translation-cell-editable"
+                    <td class="translation-cell translation-col-field"
                         data-translation-field="{{ fieldName }}"
                         {% if fieldName not in active_fields %}style="display:none;"{% endif %}>
-                        <textarea
-                            class="translation-textarea translation-editable {{ is_default ? 'translation-locale-default' : '' }}"
-                            data-object-id="{{ admin.id(object) }}"
-                            data-admin-code="{{ admin.code }}"
-                            data-locale="{{ locale }}"
-                            data-field="{{ fieldName }}"
-                            data-original-value="{{ field_value }}"
-                            rows="3"
-                        >{{ field_value }}</textarea>
+
+                        {% if field_type == 'boolean' %}
+                            {# Boolean → checkbox toggle #}
+                            <label class="translation-toggle">
+                                <input type="checkbox"
+                                    class="translation-input translation-editable"
+                                    data-object-id="{{ admin.id(object) }}"
+                                    data-admin-code="{{ admin.code }}"
+                                    data-locale="{{ locale }}"
+                                    data-field="{{ fieldName }}"
+                                    data-field-type="boolean"
+                                    data-original-value="{{ field_value ? '1' : '0' }}"
+                                    {{ field_value ? 'checked' : '' }}>
+                                <span class="translation-toggle-slider"></span>
+                            </label>
+
+                        {% elseif field_type == 'integer' or field_type == 'smallint' or field_type == 'bigint' %}
+                            {# Integer → number input #}
+                            <input type="number"
+                                class="translation-input translation-editable {{ is_default ? 'translation-locale-default' : '' }}"
+                                data-object-id="{{ admin.id(object) }}"
+                                data-admin-code="{{ admin.code }}"
+                                data-locale="{{ locale }}"
+                                data-field="{{ fieldName }}"
+                                data-field-type="number"
+                                data-original-value="{{ field_value }}"
+                                value="{{ field_value }}">
+
+                        {% elseif field_type == 'string' %}
+                            {# String → text input #}
+                            <input type="text"
+                                class="translation-input translation-editable {{ is_default ? 'translation-locale-default' : '' }}"
+                                data-object-id="{{ admin.id(object) }}"
+                                data-admin-code="{{ admin.code }}"
+                                data-locale="{{ locale }}"
+                                data-field="{{ fieldName }}"
+                                data-field-type="string"
+                                data-original-value="{{ field_value }}"
+                                value="{{ field_value }}">
+
+                        {% else %}
+                            {# Text / default → textarea with CKEditor support #}
+                            <textarea
+                                class="translation-textarea translation-editable translation-ckeditor {{ is_default ? 'translation-locale-default' : '' }}"
+                                data-object-id="{{ admin.id(object) }}"
+                                data-admin-code="{{ admin.code }}"
+                                data-locale="{{ locale }}"
+                                data-field="{{ fieldName }}"
+                                data-field-type="text"
+                                data-original-value="{{ field_value }}"
+                                rows="8"
+                            >{{ field_value }}</textarea>
+                        {% endif %}
                     </td>
                 {% endfor %}
             {% endfor %}
