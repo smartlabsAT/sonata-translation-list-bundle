@@ -19,7 +19,6 @@ return static function (ContainerConfigurator $container): void {
 
     $services->set(TranslationListAdminExtension::class)
         ->args([
-            service('doctrine.orm.entity_manager'),
             param('sonata_translation_list.locales'),
             param('sonata_translation_list.default_locale'),
         ]);
