@@ -30,6 +30,7 @@ return static function (ContainerConfigurator $container): void {
             service('sonata.admin.pool'),
             service('doctrine.orm.entity_manager'),
             service('security.csrf.token_manager'),
+            param('sonata_translation_list.locales'),
         ]);
 
     // Twig extension (registers the translation_list_config function)
