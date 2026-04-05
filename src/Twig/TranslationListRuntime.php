@@ -6,6 +6,7 @@ namespace Smartlabs\SonataTranslationListBundle\Twig;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\DoctrineBehaviors\Contract\Entity\TranslatableInterface;
+use Sonata\AdminBundle\Admin\AdminInterface;
 use Twig\Extension\RuntimeExtensionInterface;
 
 class TranslationListRuntime implements RuntimeExtensionInterface
@@ -15,11 +16,13 @@ class TranslationListRuntime implements RuntimeExtensionInterface
 
     /**
      * @param string[] $locales
+     * @param string[] $ckeditorPaths
      */
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly array $locales,
         private readonly string $defaultLocale,
+        private readonly array $ckeditorPaths = [],
     ) {
     }
 
@@ -28,7 +31,7 @@ class TranslationListRuntime implements RuntimeExtensionInterface
      *
      * @return array{fields: array<string, array{label: string, type: string}>, locales: string[], defaultLocale: string}
      */
-    public function getConfig(object $admin): array
+    public function getConfig(AdminInterface $admin): array
     {
         $modelClass = $admin->getModelClass();
 
@@ -36,6 +39,7 @@ class TranslationListRuntime implements RuntimeExtensionInterface
             'fields' => $this->discoverFields($modelClass),
             'locales' => $this->locales,
             'defaultLocale' => $this->defaultLocale,
+            'ckeditorPaths' => $this->ckeditorPaths,
         ];
     }
 
@@ -68,7 +72,7 @@ class TranslationListRuntime implements RuntimeExtensionInterface
             $fieldMapping = $metadata->getFieldMapping($fieldName);
             $type = $fieldMapping->type ?? 'string';
 
-            $label = ucfirst(trim(preg_replace('/[A-Z]/', ' $0', $fieldName)));
+            $label = ucfirst(trim(preg_replace('/[A-Z]/', ' $0', $fieldName) ?? $fieldName));
             $fields[$fieldName] = [
                 'label' => $label,
                 'type' => $type,

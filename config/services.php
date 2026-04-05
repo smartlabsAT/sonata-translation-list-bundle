@@ -19,7 +19,6 @@ return static function (ContainerConfigurator $container): void {
 
     $services->set(TranslationListAdminExtension::class)
         ->args([
-            service('doctrine.orm.entity_manager'),
             param('sonata_translation_list.locales'),
             param('sonata_translation_list.default_locale'),
         ]);
@@ -31,6 +30,7 @@ return static function (ContainerConfigurator $container): void {
             service('sonata.admin.pool'),
             service('doctrine.orm.entity_manager'),
             service('security.csrf.token_manager'),
+            param('sonata_translation_list.locales'),
         ]);
 
     // Twig extension (registers the translation_list_config function)
@@ -44,5 +44,6 @@ return static function (ContainerConfigurator $container): void {
             service('doctrine.orm.entity_manager'),
             param('sonata_translation_list.locales'),
             param('sonata_translation_list.default_locale'),
+            param('sonata_translation_list.ckeditor_paths'),
         ]);
 };
