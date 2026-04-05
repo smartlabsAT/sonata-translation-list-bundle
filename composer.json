@@ -6,6 +6,10 @@
     "homepage": "https://github.com/smartlabsAT/sonata-translation-list-bundle",
     "version": "1.0.0",
     "license": "MIT",
+    "support": {
+        "issues": "https://github.com/smartlabsAT/sonata-translation-list-bundle/issues",
+        "source": "https://github.com/smartlabsAT/sonata-translation-list-bundle"
+    },
     "authors": [
         {
             "name": "Christopher Schwarz",
@@ -34,6 +38,8 @@
             "Smartlabs\\SonataTranslationListBundle\\Tests\\": "tests/"
         }
     },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
     "extra": {
         "branch-alias": {
             "dev-main": "1.0.x-dev"
