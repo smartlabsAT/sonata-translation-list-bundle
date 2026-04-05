@@ -44,5 +44,6 @@ return static function (ContainerConfigurator $container): void {
             service('doctrine.orm.entity_manager'),
             param('sonata_translation_list.locales'),
             param('sonata_translation_list.default_locale'),
+            param('sonata_translation_list.ckeditor_paths'),
         ]);
 };

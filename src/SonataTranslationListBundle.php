@@ -25,6 +25,11 @@ class SonataTranslationListBundle extends AbstractBundle
                     ->defaultValue('%kernel.default_locale%')
                     ->info('The default (source) locale.')
                 ->end()
+                ->arrayNode('ckeditor_paths')
+                    ->defaultValue([])
+                    ->scalarPrototype()->end()
+                    ->info('Custom CKEditor script paths. If empty, default paths are used.')
+                ->end()
             ->end()
         ;
     }
@@ -33,6 +38,7 @@ class SonataTranslationListBundle extends AbstractBundle
     {
         $builder->setParameter('sonata_translation_list.locales', $config['locales']);
         $builder->setParameter('sonata_translation_list.default_locale', $config['default_locale']);
+        $builder->setParameter('sonata_translation_list.ckeditor_paths', $config['ckeditor_paths']);
 
         $container->import('../config/services.php');
     }
