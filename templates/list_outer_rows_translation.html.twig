@@ -155,6 +155,9 @@
             <span id="translation-list-save-url" data-url="{{ path('sonata_translation_list_save') }}"></span>
             <span id="translation-list-csrf-token" data-token="{{ csrf_token }}"></span>
             <span id="translation-list-active-fields" data-fields="{{ active_fields|join(',') }}"></span>
+            {% if config.ckeditorPaths is not empty %}
+                <span id="translation-list-ckeditor-config" data-paths="{{ config.ckeditorPaths|json_encode|e('html_attr') }}"></span>
+            {% endif %}
         </td>
     </tr>
 {% endif %}

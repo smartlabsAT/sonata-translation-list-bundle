@@ -16,11 +16,13 @@ class TranslationListRuntime implements RuntimeExtensionInterface
 
     /**
      * @param string[] $locales
+     * @param string[] $ckeditorPaths
      */
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly array $locales,
         private readonly string $defaultLocale,
+        private readonly array $ckeditorPaths = [],
     ) {
     }
 
@@ -37,6 +39,7 @@ class TranslationListRuntime implements RuntimeExtensionInterface
             'fields' => $this->discoverFields($modelClass),
             'locales' => $this->locales,
             'defaultLocale' => $this->defaultLocale,
+            'ckeditorPaths' => $this->ckeditorPaths,
         ];
     }
 

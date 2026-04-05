@@ -24,11 +24,22 @@
         var saveUrl = saveUrlEl.getAttribute('data-url');
         var csrfToken = csrfTokenEl.getAttribute('data-token');
 
+        // Read optional CKEditor paths from config element
+        var ckeditorConfigEl = document.getElementById('translation-list-ckeditor-config');
+        var ckeditorPaths = null;
+        if (ckeditorConfigEl) {
+            try {
+                ckeditorPaths = JSON.parse(ckeditorConfigEl.getAttribute('data-paths'));
+            } catch (e) {
+                ckeditorPaths = null;
+            }
+        }
+
         hideOriginalElements();
         createStickyHeaders();
         initFieldToggles();
         initInputs(saveUrl, csrfToken);
-        preloadCKEditor();
+        preloadCKEditor(ckeditorPaths);
     }
 
     // --- CKEditor lazy loading ---
@@ -37,7 +48,7 @@
      * Preload the CKEditor script in the background (non-blocking).
      * Does NOT create any editor instances yet.
      */
-    function preloadCKEditor() {
+    function preloadCKEditor(configuredPaths) {
         if (typeof CKEDITOR !== 'undefined') {
             ckeditorLoaded = true;
             return;
@@ -49,7 +60,9 @@
         }
 
         ckeditorLoading = true;
-        var paths = ['/ckeditor/ckeditor.js', '/bundles/fosckeditor/ckeditor.js'];
+        var paths = (configuredPaths && configuredPaths.length)
+            ? configuredPaths
+            : ['/ckeditor/ckeditor.js', '/bundles/fosckeditor/ckeditor.js'];
         tryLoadScript(paths, 0, function () {
             ckeditorLoaded = true;
             ckeditorLoading = false;
@@ -422,6 +435,12 @@
                     container.classList.remove('translation-saved');
                 }, 2000);
             } else {
+                if (result.data.message === 'Invalid CSRF token') {
+                    if (confirm('Your session has expired. Please reload the page to continue editing.')) {
+                        window.location.reload();
+                        return;
+                    }
+                }
                 container.classList.add('translation-error');
                 container.title = result.data.message || 'Save failed';
             }
